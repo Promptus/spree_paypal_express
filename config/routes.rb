@@ -2,10 +2,11 @@ Spree::Core::Engine.routes.draw do
   resources :orders do
     resource :checkout, :controller => 'checkout' do
       member do
-        get :paypal_checkout
+#        get :paypal_checkout
         get :paypal_payment
         get :paypal_confirm
-        post :paypal_finish
+        get :paypal_cancel
+#        post :paypal_finish
       end
     end
   end

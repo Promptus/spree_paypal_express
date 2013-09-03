@@ -1,0 +1,76 @@
+
+<div id="checkout" class="<%= @order.state %>">
+
+  <% if !@order.complete? %>
+    
+    <%= box :css_class => 'down10 order-not-completed' do %>
+      <h4><%= t(:order_not_completed) %></h4>
+    <% end %>
+
+  <% else %>
+
+    <%= checkout_progress %>
+
+    <%= box :css_class => 'relative' do %>
+
+      <div class="state-content">
+
+        <div class="row">
+
+          <h1 class="left"><%= t(:order_complete) %></h1>
+
+          <div class="right">
+            <%= link_to t(:back_to_shop), main_app.root_path, :class => 'button yellow send-order' %>
+          </div>
+
+        </div>
+
+        <div class="row">
+          <%= render 'delivery_addresses/item', :address => @order.ship_address %>
+        </div>
+
+        <div class="row">
+          <%= render 'spree/checkout/address/billing_address', :address => @order.bill_address %>
+        </div>
+
+        <div class="row">
+          <h4><%= t(:shipping_method) %></h4>
+          <div class="delivery">
+            <% if @order.shipping_method.unitrade_term == :no_shipping %>
+              Abholung in der Niederlassung <%= @order.store.location_name %><br />
+              <%= link_to @order.store.path, :target => :blank, :class => 'with-arrow' do %>
+                Informationen zur Niederlassung <%= @order.store.location_name %> 
+              <% end %>
+            <% else %>
+              <%= @order.shipping_method.name %>
+            <% end %>
+          </div>
+        </div>
+
+        <div class="row">
+
+          <h4><%= t(:payment_method) %></h4>
+          <%= render @order.payments.valid.completed %>
+
+        </div>
+
+        <div id="checkout-line-items" class="row">
+          <%= render 'spree/checkout/order/form' %>
+        </div>
+
+        <div class="row last">
+          <div class="left down1">
+            <%= link_to t(:print), 'javascript:window.print()', :class => 'button yellow send-order' %>
+          </div>
+          <div class="right down1">
+            <%= link_to t(:back_to_shop), main_app.root_path, :class => 'button yellow send-order' %>
+          </div>
+        </div>
+      <% end %>
+
+    </div>
+
+  <% end %>
+
+</div>
+
