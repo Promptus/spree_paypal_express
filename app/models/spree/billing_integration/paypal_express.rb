@@ -9,14 +9,6 @@ class Spree::BillingIntegration::PaypalExpress < Spree::BillingIntegration::Payp
   
   attr_accessor :ppx_response
   
-  def linkout_url(payment, mobile, options)
-    if redirect_url = start_payment!(payment.order, options[:return_url], options[:cancel_url], :mobile => mobile)
-      redirect_url
-    else
-      nil
-    end
-  end
-  
   # moved from CheckoutController(Decorator)#paypal_payment
   def start_payment!(order, return_url, cancel_url, redirect_opts = {})
     order.reload
@@ -34,7 +26,9 @@ class Spree::BillingIntegration::PaypalExpress < Spree::BillingIntegration::Payp
     if @ppx_response.success?
       provider.redirect_url_for(@ppx_response.token, {:review => preferred_review}.merge(redirect_opts))
     else
-      false
+      raise SpreePaypalExpress::PaymentSetupFailedError
     end
+  rescue ActiveMerchant::ConnectionError
+    raise SpreePaypalExpress::PaymentSetupFailedError
   end
 end

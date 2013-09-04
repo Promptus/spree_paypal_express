@@ -22,12 +22,13 @@ module Spree
       else
         render_error(payment_method.ppx_response)
       end
-    rescue ActiveMerchant::ConnectionError => e
+    rescue ActiveMerchant::ConnectionError, SpreePaypalExpress::PaymentSetupFailedError
       render_error(I18n.t(:unable_to_connect_to_gateway))
     end
 
     def paypal_confirm
       load_order
+      payment = nil
       ppx_details, payment = *get_payment_from_details(params[:token])
       payer_id = ppx_details.params["payer_id"]
       if ppx_details.success? and payer_id == params[:PayerID]
@@ -43,8 +44,10 @@ module Spree
         payment.response_code = ppx_purchase_response.authorization
         payment.avs_response = ppx_purchase_response.avs_result["code"]
         payment.save!
+        
+        paid_amount = Float(ppx_purchase_response.params["gross_amount"])
 
-        if ppx_purchase_response.success?
+        if ppx_purchase_response.success? and paid_amount == payment.amount
           case ppx_purchase_response.params["payment_status"]
           when "Completed"
             payment.complete!
@@ -52,7 +55,7 @@ module Spree
             render_success
           else
             payment.failure!
-            raise "Unexpected response from PayPal Express !"
+            render_error(ppx_purchase_response)
           end
         else
           payment.failure!
@@ -62,7 +65,8 @@ module Spree
         payment.failure!
         render_error(ppx_details)
       end
-    rescue ActiveMerchant::ConnectionError => e
+    rescue ActiveMerchant::ConnectionError
+      payment.failure! if payment
       render_error(I18n.t(:unable_to_connect_to_gateway))
     end
     

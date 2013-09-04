@@ -1,5 +1,9 @@
 module Spree::PaypalExpress; end
 module SpreePaypalExpress
+  
+  class Error < StandardError; end
+  class PaymentSetupFailedError < Error; end
+  
   class Engine < Rails::Engine
     engine_name 'spree_paypal_express'
 
