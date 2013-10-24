@@ -30,7 +30,7 @@ module SpreePaypalExpress
       end
 
 
-      { :description             => "Goods from #{Spree::Config[:site_name]}", # site details...
+      { :description             => "#{I18n.t(:paypal_cart_from)} #{Spree::Config[:site_name]}", # site details...
         #:page_style             => "foobar", # merchant account can set named config
         :background_color        => "ffffff",  # must be hex only, six chars
         :header_background_color => "ffffff",
@@ -57,18 +57,18 @@ module SpreePaypalExpress
     end
 
     def order_opts(order, payment, stage, return_url, cancel_url)
-      items = order.line_items.map do |item|
-        price = (item.price * 100).to_i # convert for gateway
-        { :name        => item.variant.product.name.gsub(/<\/?[^>]*>/, ""),
-          :description => (item.variant.product.description[0..120].gsub(/<\/?[^>]*>/, "") if item.variant.product.description),
-          :number      => item.variant.sku,
-          :quantity    => item.quantity,
-          :amount      => price,
-          :weight      => item.variant.weight,
-          :height      => item.variant.height,
-          :width       => item.variant.width,
-          :depth       => item.variant.weight }
-        end
+#      items = order.line_items.map do |item|
+#        price = (item.price * 100).to_i # convert for gateway
+#        { :name        => item.variant.product.name.gsub(/<\/?[^>]*>/, ""),
+#          :description => (item.variant.product.description[0..120].gsub(/<\/?[^>]*>/, "") if item.variant.product.description),
+#          :number      => item.variant.sku,
+#          :quantity    => item.quantity,
+#          :amount      => price,
+#          :weight      => item.variant.weight,
+#          :height      => item.variant.height,
+#          :width       => item.variant.width,
+#          :depth       => item.variant.weight }
+#        end
 
       credits = order.adjustments.eligible.map do |credit|
         if credit.amount < 0.00
@@ -83,7 +83,7 @@ module SpreePaypalExpress
       credits_total = 0
       credits.compact!
       if credits.present?
-        items.concat credits
+#        items.concat credits
         credits_total = credits.map {|i| i[:amount] * i[:quantity] }.sum
       end
 
@@ -102,7 +102,7 @@ module SpreePaypalExpress
                :cancel_return_url => cancel_url,
                :order_id          => order.number,
                :custom            => payment.id,
-               :items             => items,
+#               :items             => items,
                :subtotal          => ((order.item_total * 100) + credits_total).to_i,
                :tax               => (order.tax_total*100).to_i,
                :shipping          => shipping_total,

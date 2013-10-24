@@ -26,7 +26,7 @@ class Spree::PaypalAccount < ActiveRecord::Base
     logs = payment.log_entries.all(:order => 'created_at DESC')
     logs.each do |log|
       details = YAML.load(log.details) # return the transaction details
-      if details.params['payment_type'] == 'echeck'
+      if details.respond_to?(:params) and details.params['payment_type'] == 'echeck'
         return true
       end
     end

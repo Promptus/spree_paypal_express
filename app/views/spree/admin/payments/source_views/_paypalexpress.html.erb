@@ -31,11 +31,11 @@
 <fieldset>
   <legend><%= t('transactions') %></legend>
 
-  <% payment.log_entries.reverse.each do |log| %>
+  <% payment.log_entries.each do |log| %>
   <% details = YAML.load(log.details) rescue "" %>
     <table class="index">
 
-      <% if details.is_a? ActiveMerchant::Billing::PaypalExpressResponse %>
+      <% if false and details.is_a? ActiveMerchant::Billing::PaypalExpressResponse %>
         <tr>
           <th colspan="6"><%= t('transaction') %> <%= details.params["transaction_id"] %> -  <%= log.created_at.to_s(:date_time24) %></th>
         </tr>
@@ -71,7 +71,7 @@
             </td>
           </tr>
         <% end %>
-      <% elsif details.is_a? ActiveMerchant::Billing::Integrations::Paypal::Notification %>
+      <% elsif false and details.is_a? ActiveMerchant::Billing::Integrations::Paypal::Notification %>
         <tr>
           <th colspan="6"><%= t('ipn_transaction') %> <%= details.params["txn_id"] %> -  <%= log.created_at.to_s(:date_time24) %></th>
         </tr>

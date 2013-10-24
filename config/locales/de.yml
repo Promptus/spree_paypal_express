@@ -9,6 +9,9 @@ de:
   unable_to_capture_paypal: Paypal Transaktion konnte nicht durchgeführt werden.
   signature: Signatur
   order_not_yet_placed: "Ihre Bestellung wurde <strong>NICHT</strong> abgeschlossen werden, bitte überprüfen sie die Details und klicken erneut <strong>Bestellung abschließen</strong>."
+  # from paypal express / active merchant
+  konnte_nicht_zur_schnitstelle_verbinden: "Bezahlvorgang konnte nicht initiiert werden, bitte versuchen Sie es erneut."
+  paypal_cart_from: Warenkorb von
   paypal_payment_id: PayPal Zahlungs ID
   pending_reason: Pending Reason
   result: Ergebnis
