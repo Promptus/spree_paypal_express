@@ -35,7 +35,9 @@ module Spree
         paypal_account = find_or_create_paypal_account(ppx_details)
         return_url, cancel_url = *paypal_urls(@order, payment_method)
         opts = { :token => params[:token], :payer_id => payer_id }.merge all_opts(@order, payment, 'payment', return_url, cancel_url)
-        ppx_purchase_response = paypal_gateway.purchase((@order.total*100).to_i, opts)
+        amount = (@order.total*100).to_i
+        record_log payment, {:amount => amount, :opts => opts}
+        ppx_purchase_response = paypal_gateway.purchase(amount, opts)
         Rails.logger.debug "Paypal purchase response:"
         Rails.logger.debug ppx_purchase_response.to_yaml
         record_log payment, ppx_purchase_response
@@ -159,6 +161,8 @@ module Spree
       Rails.logger.debug ppx_details
       
       payment = Spree::Payment.find(ppx_details.params["PaymentDetails"]["Custom"])
+      
+      record_log payment, ppx_details
       
       [ppx_details, payment]
     end

@@ -18,9 +18,11 @@ class Spree::BillingIntegration::PaypalExpress < Spree::BillingIntegration::Payp
     
     Rails.logger.debug "Paypal purchase setup options:"
     Rails.logger.debug opts
+    record_log payment, {:money => opts[:money], :opts => opts}
     @ppx_response = provider.setup_purchase(opts[:money], opts)
     Rails.logger.debug "Paypal purchase setup response:"
     Rails.logger.debug @ppx_response.to_yaml
+    record_log payment, @ppx_response
     payment.started_processing!
     
     if @ppx_response.success?

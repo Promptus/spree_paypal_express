@@ -8,21 +8,21 @@
     <tr>
       <td><label><%= t("email") %>:</label></td>
       <td>
-        <%= payment.source.email %>
+        <%= payment.source.try(:email) %>
       </td>
       <td><label><%= t("payer_id") %>:</label></td>
       <td>
-        <%= payment.source.payer_id %>
+        <%= payment.source.try(:payer_id) %>
       </td>
       <td><label><%= t("payer_country") %>:</label></td>
       <td>
-        <%= payment.source.payer_country %>
+        <%= payment.source.try(:payer_country) %>
       </td>
     </tr>
     <tr>
       <td><label><%= t("payer_status") %>:</label></td>
       <td colspan="5">
-        <%= payment.source.payer_status %>
+        <%= payment.source.try(:payer_status) %>
       </td>
     </tr>
   </table>
