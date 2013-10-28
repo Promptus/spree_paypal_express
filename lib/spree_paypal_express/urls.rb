@@ -9,8 +9,9 @@ module SpreePaypalExpress
       host = request.host
       host = development_paypal_linkout_host(host) if Rails.env.development?
       port = request.port
-      return_url = Spree::Core::Engine.routes.url_helpers.paypal_confirm_order_checkout_url(order, :payment_method_id => payment_method.id, :host => host, :port => port)
-      cancel_url = Spree::Core::Engine.routes.url_helpers.paypal_cancel_order_checkout_url(order, :payment_method_id => payment_method.id, :host => host, :port => port)
+      protocol = request.protocol
+      return_url = Spree::Core::Engine.routes.url_helpers.paypal_confirm_order_checkout_url(order, :payment_method_id => payment_method.id, :host => host, :port => port, :protocol => protocol)
+      cancel_url = Spree::Core::Engine.routes.url_helpers.paypal_cancel_order_checkout_url(order, :payment_method_id => payment_method.id, :host => host, :port => port, :protocol => protocol)
       [return_url, cancel_url]
     end
     
