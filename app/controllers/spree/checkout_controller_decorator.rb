@@ -47,7 +47,7 @@ module Spree
         payment.avs_response = ppx_purchase_response.avs_result["code"]
         payment.save!
         
-        paid_amount = Float(ppx_purchase_response.params["gross_amount"])
+        paid_amount = BigDecimal(ppx_purchase_response.params["gross_amount"])
 
         if ppx_purchase_response.success? and paid_amount == payment.amount
           case ppx_purchase_response.params["payment_status"]
