@@ -11,6 +11,7 @@ de:
   order_not_yet_placed: "Ihre Bestellung wurde <strong>NICHT</strong> abgeschlossen werden, bitte überprüfen sie die Details und klicken erneut <strong>Bestellung abschließen</strong>."
   # from paypal express / active merchant
   konnte_nicht_zur_schnitstelle_verbinden: "Bezahlvorgang konnte nicht initiiert werden, bitte versuchen Sie es erneut."
+  payment_is_pending_please_contact_support: "Bezahlvorgang wurde gestartet aber nicht abgeschlossen, bitte kontaktieren Sie den Support."
   paypal_cart_from: Warenkorb von
   paypal_payment_id: PayPal Zahlungs ID
   pending_reason: Pending Reason

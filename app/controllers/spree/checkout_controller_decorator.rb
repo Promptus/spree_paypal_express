@@ -55,12 +55,18 @@ module Spree
             payment.complete!
             @order.next
             render_success
+          when "Pending"
+            payment.failure!
+            failed_payment_callback(payment, ppx_purchase_response)
+            render_error("Payment is pending, please contact support.")
           else
             payment.failure!
+            failed_payment_callback(payment, ppx_purchase_response)
             render_error(ppx_purchase_response)
           end
         else
           payment.failure!
+          failed_payment_callback(payment, ppx_purchase_response)
           render_error(ppx_purchase_response)
         end
       else
@@ -68,7 +74,10 @@ module Spree
         render_error(ppx_details)
       end
     rescue ActiveMerchant::ConnectionError
-      payment.failure! if payment
+      if payment
+        failed_payment_callback(payment)
+        payment.failure!
+      end
       render_error(I18n.t(:unable_to_connect_to_gateway))
     end
     
@@ -80,6 +89,12 @@ module Spree
     end
     
     private
+
+    # to be overriden
+    def failed_payment_callback(payment, last_response = nil)
+      msg = "Failed payment: #{payment.inspect}"
+      Rails.logger.info msg
+    end
 
     def redirect_to_paypal_express_form_if_needed
       return unless (params[:state] == "payment")
