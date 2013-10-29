@@ -28,6 +28,7 @@ class Spree::BillingIntegration::PaypalExpress < Spree::BillingIntegration::Payp
     if @ppx_response.success?
       provider.redirect_url_for(@ppx_response.token, {:review => preferred_review}.merge(redirect_opts))
     else
+      payment.failure!
       raise SpreePaypalExpress::PaymentSetupFailedError
     end
   rescue ActiveMerchant::ConnectionError
