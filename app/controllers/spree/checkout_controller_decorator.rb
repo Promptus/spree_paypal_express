@@ -16,18 +16,26 @@ module Spree
           :amount => @order.total
         )
       end
+      payment = @order.checkout_payment
       return_url, cancel_url = *paypal_urls(@order, payment_method)
+      # TODO: the from_api? call doesn't really belong in this project
       if redirect_url = payment_method.start_payment!(@order, return_url, cancel_url)
         redirect_to redirect_url
+        payment.started_processing!
       else
+        payment.started_processing! if payment.checkout?
+        payment.failure!
+        failed_payment_callback(payment, payment_method.ppx_response)
         render_error(payment_method.ppx_response)
       end
     rescue ActiveMerchant::ConnectionError, SpreePaypalExpress::PaymentSetupFailedError
+      failed_payment_callback(payment)
       render_error(I18n.t(:unable_to_connect_to_gateway))
     end
 
     def paypal_confirm
       load_order
+      @order.reload # Needed here so that the order total is consistent with other checkout actions
       payment = nil
       ppx_details, payment = *get_payment_from_details(params[:token])
       payer_id = ppx_details.params["payer_id"]
@@ -49,20 +57,26 @@ module Spree
         
         paid_amount = BigDecimal(ppx_purchase_response.params["gross_amount"])
 
-        if ppx_purchase_response.success? and paid_amount == payment.amount
-          case ppx_purchase_response.params["payment_status"]
-          when "Completed"
-            payment.complete!
-            @order.next
-            render_success
-          when "Pending"
-            payment.failure!
-            failed_payment_callback(payment, ppx_purchase_response)
-            render_error("Payment is pending, please contact support.")
+        if ppx_purchase_response.success?
+          if paid_amount == payment.amount
+            case ppx_purchase_response.params["payment_status"]
+            when "Completed"
+              payment.complete!
+              @order.next
+              render_success
+            when "Pending"
+              payment.failure!
+              failed_payment_callback(payment, ppx_purchase_response)
+              render_error("Payment is pending, please contact support.")
+            else
+              payment.failure!
+              failed_payment_callback(payment, ppx_purchase_response)
+              render_error(ppx_purchase_response)
+            end
           else
             payment.failure!
             failed_payment_callback(payment, ppx_purchase_response)
-            render_error(ppx_purchase_response)
+            render_error("Payment has succeeded, but balance was not sufficient.")
           end
         else
           payment.failure!
@@ -175,7 +189,7 @@ module Spree
       Rails.logger.debug "Paypal details response:"
       Rails.logger.debug ppx_details
       
-      payment = Spree::Payment.find(ppx_details.params["PaymentDetails"]["Custom"])
+      payment = Spree::Payment.find(ppx_details.params["PaymentDetails"]["InvoiceID"])
       
       record_log payment, ppx_details
       

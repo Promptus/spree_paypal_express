@@ -100,8 +100,8 @@ module SpreePaypalExpress
 
       opts = { :return_url        => return_url,
                :cancel_return_url => cancel_url,
-               :order_id          => order.number,
-               :custom            => payment.id,
+               :order_id          => payment.id,
+               :custom            => order.number,
 #               :items             => items,
                :subtotal          => ((order.item_total * 100) + credits_total).to_i,
                :tax               => (order.tax_total*100).to_i,

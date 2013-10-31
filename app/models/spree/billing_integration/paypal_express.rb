@@ -23,15 +23,17 @@ class Spree::BillingIntegration::PaypalExpress < Spree::BillingIntegration::Payp
     Rails.logger.debug "Paypal purchase setup response:"
     Rails.logger.debug @ppx_response.to_yaml
     record_log payment, @ppx_response
-    payment.started_processing!
     
     if @ppx_response.success?
       provider.redirect_url_for(@ppx_response.token, {:review => preferred_review}.merge(redirect_opts))
     else
+      payment.started_processing! if payment.checkout?
       payment.failure!
       raise SpreePaypalExpress::PaymentSetupFailedError
     end
   rescue ActiveMerchant::ConnectionError
+    payment.started_processing! if payment.checkout?
+    payment.failure!
     raise SpreePaypalExpress::PaymentSetupFailedError
   end
 end

@@ -12,6 +12,7 @@ de:
   # from paypal express / active merchant
   konnte_nicht_zur_schnitstelle_verbinden: "Bezahlvorgang konnte nicht initiiert werden, bitte versuchen Sie es erneut."
   payment_is_pending_please_contact_support: "Bezahlvorgang wurde gestartet aber nicht abgeschlossen, bitte kontaktieren Sie den Support."
+  payment_has_succeeded_but_balance_was_not_sufficient: "Bezahlung wurde durchgeführt, war aber nicht ausreichend."
   paypal_cart_from: Warenkorb von
   paypal_payment_id: PayPal Zahlungs ID
   pending_reason: Pending Reason
