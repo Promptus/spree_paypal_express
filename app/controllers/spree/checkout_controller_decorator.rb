@@ -17,7 +17,7 @@ module Spree
         )
       end
       payment = @order.checkout_payment
-      return_url, cancel_url = *paypal_urls(@order, payment_method)
+      return_url, cancel_url = *paypal_urls(@order, payment_method, paypal_return_url_options, paypal_cancel_url_options)
       # TODO: the from_api? call doesn't really belong in this project
       if redirect_url = payment_method.start_payment!(@order, return_url, cancel_url)
         redirect_to redirect_url
@@ -194,6 +194,14 @@ module Spree
       record_log payment, ppx_details
       
       [ppx_details, payment]
+    end
+    
+    def paypal_return_url_options
+      {}
+    end
+    
+    def paypal_cancel_url_options
+      {}
     end
 
   end
