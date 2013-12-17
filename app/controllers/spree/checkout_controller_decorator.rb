@@ -4,8 +4,6 @@ module Spree
     include SpreePaypalExpress::ParameterMethods
     include SpreePaypalExpress::Urls
     include SpreePaypalExpress::ResultRendering
-    
-    before_filter :redirect_to_paypal_express_form_if_needed, :only => [:update]
 
     # this starts a payment process with paypal and redirects the user to it
     def paypal_payment
@@ -108,28 +106,6 @@ module Spree
     def failed_payment_callback(payment, last_response = nil)
       msg = "Failed payment: #{payment.inspect}"
       Rails.logger.info msg
-    end
-
-    def redirect_to_paypal_express_form_if_needed
-      return unless (params[:state] == "payment")
-      return unless params[:order][:payments_attributes]
-
-      payment_method = Spree::PaymentMethod.find(params[:order][:payments_attributes].first[:payment_method_id])
-      return unless payment_method.kind_of?(Spree::BillingIntegration::PaypalExpress) || payment_method.kind_of?(Spree::BillingIntegration::PaypalExpressUk)
-
-      update_params = object_params.dup
-      update_params.delete(:payments_attributes)
-      if @order.update_attributes(update_params)
-        fire_event('spree.checkout.update')
-        render :edit and return unless apply_coupon_code
-      end
-
-      load_order
-      if @order.errors.empty?
-        redirect_to(paypal_payment_order_checkout_url(@order, :payment_method_id => payment_method.id)) and return
-      else
-        render :edit and return
-      end
     end
 
     def gateway_error(response)
