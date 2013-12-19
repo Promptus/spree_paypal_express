@@ -60,7 +60,6 @@ module Spree
             case ppx_purchase_response.params["payment_status"]
             when "Completed"
               payment.complete!
-              @order.next
               render_success
             when "Pending"
               payment.failure!
