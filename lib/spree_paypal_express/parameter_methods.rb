@@ -161,7 +161,7 @@ module SpreePaypalExpress
 #    end
 
     def address_options(order)
-      if payment_method.preferred_no_shipping
+      if order.shipping_method.no_shipping?
         { :no_shipping => true }
       else
         {
