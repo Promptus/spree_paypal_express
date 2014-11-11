@@ -36,53 +36,60 @@ module Spree
       @order.reload # Needed here so that the order total is consistent with other checkout actions
       payment = nil
       ppx_details, payment = *get_payment_from_details(params[:token])
-      payer_id = ppx_details.params["payer_id"]
-      if ppx_details.success? and payer_id == params[:PayerID]
-        paypal_account = find_or_create_paypal_account(ppx_details)
-        return_url, cancel_url = *paypal_urls(@order, payment_method)
-        opts = { :token => params[:token], :payer_id => payer_id }.merge all_opts(@order, payment, 'payment', return_url, cancel_url)
-        amount = (@order.total*100).to_i
-        record_log payment, {:amount => amount, :opts => opts, :method => :purchase}
-        ppx_purchase_response = paypal_gateway.purchase(amount, opts)
-        Rails.logger.debug "Paypal purchase response:"
-        Rails.logger.debug ppx_purchase_response.to_yaml
-        record_log payment, ppx_purchase_response
-        payment.source = paypal_account
-        payment.source_type = 'Spree::PaypalAccount'
-        payment.response_code = ppx_purchase_response.authorization
-        payment.avs_response = ppx_purchase_response.avs_result["code"]
-        payment.save!
-        
-        paid_amount = BigDecimal(ppx_purchase_response.params["gross_amount"])
+      if payment.canceled?
+        # This can happen if the user opens the paypal payment multiple times in different tabs, and cancels
+        # in one tab, and confirms in another. Paypal doesn't seem to check for canceled payments itself.
+        # See also #5971
+        render_cancel(I18n.t(:payment_cancelled))
+      else
+        payer_id = ppx_details.params["payer_id"]
+        if ppx_details.success? and payer_id == params[:PayerID]
+          paypal_account = find_or_create_paypal_account(ppx_details)
+          return_url, cancel_url = *paypal_urls(@order, payment_method)
+          opts = { :token => params[:token], :payer_id => payer_id }.merge all_opts(@order, payment, 'payment', return_url, cancel_url)
+          amount = (@order.total*100).to_i
+          record_log payment, {:amount => amount, :opts => opts, :method => :purchase}
+          ppx_purchase_response = paypal_gateway.purchase(amount, opts)
+          Rails.logger.debug "Paypal purchase response:"
+          Rails.logger.debug ppx_purchase_response.to_yaml
+          record_log payment, ppx_purchase_response
+          payment.source = paypal_account
+          payment.source_type = 'Spree::PaypalAccount'
+          payment.response_code = ppx_purchase_response.authorization
+          payment.avs_response = ppx_purchase_response.avs_result["code"]
+          payment.save!
 
-        if ppx_purchase_response.success?
-          if paid_amount == payment.amount
-            case ppx_purchase_response.params["payment_status"]
-            when "Completed"
-              payment.complete!
-              render_success
-            when "Pending"
-              payment.failure!
-              failed_payment_callback(payment, ppx_purchase_response)
-              render_error("Payment is pending, please contact support.")
+          paid_amount = BigDecimal(ppx_purchase_response.params["gross_amount"])
+
+          if ppx_purchase_response.success?
+            if paid_amount == payment.amount
+              case ppx_purchase_response.params["payment_status"]
+              when "Completed"
+                payment.complete!
+                render_success
+              when "Pending"
+                payment.failure!
+                failed_payment_callback(payment, ppx_purchase_response)
+                render_error("Payment is pending, please contact support.")
+              else
+                payment.failure!
+                failed_payment_callback(payment, ppx_purchase_response)
+                render_error(ppx_purchase_response)
+              end
             else
               payment.failure!
               failed_payment_callback(payment, ppx_purchase_response)
-              render_error(ppx_purchase_response)
+              render_error("Payment has succeeded, but balance was not sufficient.")
             end
           else
             payment.failure!
             failed_payment_callback(payment, ppx_purchase_response)
-            render_error("Payment has succeeded, but balance was not sufficient.")
+            render_error(ppx_purchase_response)
           end
         else
           payment.failure!
-          failed_payment_callback(payment, ppx_purchase_response)
-          render_error(ppx_purchase_response)
+          render_error(ppx_details)
         end
-      else
-        payment.failure!
-        render_error(ppx_details)
       end
     rescue ActiveMerchant::ConnectionError
       if payment
